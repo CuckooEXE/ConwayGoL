@@ -17,22 +17,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include "main.h"
 
 #define ALIVE 1
 #define DEAD  0
 #define mod %
+
 int** board;
 int sq;
 int g;
-
-void kill_cell(int i, int j);
-void produce_cell(int i, int j);
-int count_neighbors(int i, int j);
-void loop_board();
-void write_board();
-void read_board();
-void free_board();
-void print_board();
 
 /**
  * @name    kill_cell
@@ -150,38 +143,11 @@ void write_board(char* fname) {
  * @endcode
 **/
 int count_neighbors(int i, int j) {
-	// Special cases:
-	//	i or j are 0
-	//	i or j are sq-1
+	int up = (i==0)       ? board[sq-1][j] : board[i-1][j];
+	int down = (i==sq-1)  ? board[0][j]    : board[i+1][j];
+	int left = (j==0)     ? board[i][sq-1] : board[i][j-1];
+	int right = (j==sq-1) ? board[i][0]    : board[i][j+1];
 
-	int up, down, left, right;
-	if(i==0) {
-		// Left is special
-		up = board[sq-1][j];
-	} else {
-		up = board[i-1][j];
-	}
-
-	if(i==sq-1) {
-		// Down is special
-		down = board[0][j];
-	} else {
-		down = board[i+1][j];
-	}
-
-	if(j==0) {
-		// Left is special
-		left = board[i][sq-1];
-	} else {
-		left = board[i][j-1];
-	}
-
-	if(j==sq-1) {
-		// Right is special
-		right = board[i][0];
-	} else {
-		right = board[i][j+1];
-	}
 	//Count Diagonals
 	int ll, lr, ul, ur; //Lower left, lower right, upper left, upper right.
 	if(i==0&&j==sq-1) {
