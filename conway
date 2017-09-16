@@ -1,0 +1,1 @@
+tail -f board && SQUARE=5 GENERATIONS=5 make run
