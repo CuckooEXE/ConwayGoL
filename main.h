@@ -17,4 +17,6 @@ void free_board();
 
 void print_board();
 
+void copy_board();
+
 #endif

@@ -24,6 +24,7 @@
 #define mod %
 
 int** board;
+int** board_w;
 int sq;
 int g;
 
@@ -73,6 +74,8 @@ void produce_cell(int i, int j) {
  *
  * Prints all cells in a board
  *
+ * @param [int**] b Board
+ *
  * @retval void
  *
  * Example Usage:
@@ -80,10 +83,10 @@ void produce_cell(int i, int j) {
  *    free_board();
  * @print_board
 **/
-void print_board() {
+void print_board(int** b) {
 	for(int i = 0; i < sq; i++) {
 		for(int j = 0; j < sq; j++) {
-			printf("%d", board[i][j]);
+			printf("%d", b[i][j]);
 		}
 		printf("\n");
 	}
@@ -135,48 +138,44 @@ void write_board(char* fname) {
  * @param [int] x  X coordinate of cell
  * @param [int] y  Y coordinate of cell
  *
- * @retval int either ALIVE or DEAD
+ * @retval int number of neighbors
  *
  * Example Usage:
  * @code
- *    count_neighbors(3, 5); //Returns either ALIVE or DEAD (1 or 0)
+ *    count_neighbors(3, 5); //Number of neighbors
  * @endcode
 **/
 int count_neighbors(int i, int j) {
-	int up = (i==0)       ? board[sq-1][j] : board[i-1][j];
-	int down = (i==sq-1)  ? board[0][j]    : board[i+1][j];
-	int left = (j==0)     ? board[i][sq-1] : board[i][j-1];
-	int right = (j==sq-1) ? board[i][0]    : board[i][j+1];
+	int up 		= board[(i-1+sq)%sq][j];
+	int down	= board[(i+1+sq)%sq][j];
+	int left	= board[i][(j-1+sq)%sq];
+	int right = board[i][(j+1+sq)%sq];
 
-	//Count Diagonals
-	int ll, lr, ul, ur; //Lower left, lower right, upper left, upper right.
-	if(i==0&&j==sq-1) {
-		ll = board[0][sq-1];
-	} else {
-		ll = board[i+1][j-1];
-	}
-
-	if(i==sq-1&&j==sq-1) {
-		//ll
-		lr = board[0][0];
-	} else {
-		lr = board[i+1][j+1];
-	}
-
-	if(i==0&&j==0) {
-		ul = board[sq-1][sq-1];
-	} else {
-		ul = board[i-1][j-1];
-	}
-
-	if(i==sq-1&&j==0) {
-		ur = board[sq-1][0];
-	} else {
-		ur = board[i-1][j+1];
-	}
-
+	int ll	= board[(i+1+sq)%sq][(j-1+sq)%sq];
+	int lr	= board[(i+1+sq)%sq][(j+1+sq)%sq];
+	int ul	= board[(i-1+sq)%sq][(j-1+sq)%sq];
+	int ur	= board[(i-1+sq)%sq][(j+1+sq)%sq];
 
 	return up + down + left + right + ll + lr + ul + ur;
+}
+
+/**
+ * @name    copy_board
+ * @brief   Loops through a board
+ *
+ * Copies the data from one board to another
+ *
+ * @retval void
+ *
+ * Example Usage:
+ * @code
+ *    copy_board();
+ * @endcode
+**/
+void copy_board(int** src, int** dst) {
+	for(int i = 0; i < sq; i++){
+		memcpy(dst[i], src[i], sq*sizeof(int));
+	}
 }
 
 /**
@@ -195,14 +194,15 @@ int count_neighbors(int i, int j) {
 void loop_board() {
 	int n; // Number of neighbors when looping through board
 	for(int gcounter = 0; gcounter < g; gcounter++) {
-		for(int i = 0; i < sq; i++){
+		copy_board(board, board_w);
+		for(int i = 0; i < sq; i++) {
 			for(int j = 0; j < sq; j++) {
 				n = count_neighbors(i, j);
-				printf("i=%d j=%d n=%d\n", i, j, n);
+				printf("%d %d %d\n", i, j, n);
 				if(n < 2) {
 					// Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
 					kill_cell(i, j);
-				} else if(board[i][j] == DEAD && n == 3) {
+				} else if(board_w[i][j] == DEAD && n == 3) {
 					// Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 					produce_cell(i, j);
 				} else if(n < 4 && n > 1) {
@@ -261,17 +261,48 @@ void read_board(const char* fname) {
  *
  * Frees all pointers in board
  *
+ * @param [int**] b  Reference to a board
+ *
  * @retval void
  *
  * Example Usage:
  * @code
- *    free_board();
+ *    free_board(int** b);
  * @endcode
 **/
-void free_board() {
+void free_board(int** b) {
 	for(int i = 0; i < sq; i++)
-    free(board[i]);
-	free(board);
+    free(b[i]);
+	free(b);
+}
+
+/**
+ * @name    create_board
+ * @brief   Creates a board
+ *
+ * Creates a board
+ *
+ * @param [int**] b  Reference to a board
+ *
+ * @retval [int**] Modified board
+ *
+ * Example Usage:
+ * @code
+ *    create_board();
+ * @endcode
+**/
+void create_board() {
+	board = malloc(sq*sizeof(int*));
+	for(int i = 0; i < sq; i++) {
+		board[i] = malloc(sq*sizeof(int));
+		memset(board[i], 0, sq*sizeof(board[i][0]));
+	}
+
+	board_w = malloc(sq*sizeof(int*));
+	for(int i = 0; i < sq; i++) {
+		board_w[i] = malloc(sq*sizeof(int));
+		memset(board_w[i], 0, sq*sizeof(board_w[i][0]));
+	}
 }
 
 
@@ -284,19 +315,14 @@ int main(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	//Init board global variable
-	board = malloc(sq*sizeof(int*));
-	for(int i = 0; i < sq; i++) {
-		board[i] = malloc(sq*sizeof(int));
-		memset(board[i], 0, sq*sizeof(board[i][0]));
-	}
-
-
-
+	create_board();
+	// print_board(board);
+	// print_board(board_w);
 	read_board("board");
 	loop_board();
 	write_board("board");
-	free_board();
+	free_board(board);
+	free_board(board_w);
 
 	return 0;
 }
