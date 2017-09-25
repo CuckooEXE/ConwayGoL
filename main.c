@@ -198,7 +198,6 @@ void loop_board() {
 		for(int i = 0; i < sq; i++) {
 			for(int j = 0; j < sq; j++) {
 				n = count_neighbors(i, j);
-				printf("%d %d %d\n", i, j, n);
 				if(n < 2) {
 					// Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
 					kill_cell(i, j);
