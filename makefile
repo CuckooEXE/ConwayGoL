@@ -8,7 +8,7 @@ run: main.c
 	./main.o $(SQUARE) $(GENERATIONS)
 
 debug: main.c
-	gcc -Wall main.c -o main.o && ./main.o 5 5
+	gcc -Wall main.c -o main.o && ./main.o 50 50000
 
 clean:
 	rm *.o

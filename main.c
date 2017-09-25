@@ -146,15 +146,15 @@ void write_board(char* fname) {
  * @endcode
 **/
 int count_neighbors(int i, int j) {
-	int up 		= board[(i-1+sq)%sq][j];
-	int down	= board[(i+1+sq)%sq][j];
-	int left	= board[i][(j-1+sq)%sq];
-	int right = board[i][(j+1+sq)%sq];
+	int up 		= board_w[(i-1+sq)%sq][j];
+	int down	= board_w[(i+1+sq)%sq][j];
+	int left	= board_w[i][(j-1+sq)%sq];
+	int right = board_w[i][(j+1+sq)%sq];
 
-	int ll	= board[(i+1+sq)%sq][(j-1+sq)%sq];
-	int lr	= board[(i+1+sq)%sq][(j+1+sq)%sq];
-	int ul	= board[(i-1+sq)%sq][(j-1+sq)%sq];
-	int ur	= board[(i-1+sq)%sq][(j+1+sq)%sq];
+	int ll	= board_w[(i+1+sq)%sq][(j-1+sq)%sq];
+	int lr	= board_w[(i+1+sq)%sq][(j+1+sq)%sq];
+	int ul	= board_w[(i-1+sq)%sq][(j-1+sq)%sq];
+	int ur	= board_w[(i-1+sq)%sq][(j+1+sq)%sq];
 
 	return up + down + left + right + ll + lr + ul + ur;
 }
@@ -207,13 +207,13 @@ void loop_board() {
 				} else if(n < 4 && n > 1) {
 					// Any live cell with two or three live neighbours lives on to the next generation.
 					continue;
-				} else if(n < 3) {
+				} else if(n > 3) {
 					// Any live cell with more than three live neighbours dies, as if by overpopulation.
 					kill_cell(i, j);
 				}
 			}
 		}
-		sleep(1);
+		sleep(.75);
 		write_board("board");
 	}
 }
